@@ -53,7 +53,7 @@ jobs:
 
       # Here we use this action
       - name: Copy files
-        uses: picodebr/copy-action
+        uses: picodebr/copy-action@v1
         with:
           ssh_key: ${{ secrets.SSH_KEY }}
           ssh_user: ${{ secrets.SSH_USER }}
