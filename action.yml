@@ -32,26 +32,16 @@ runs:
         COPY_ACTION_KEY_NAME="KEY_$RANDOM"
         echo "COPY_ACTION_KEY_NAME=$COPY_ACTION_KEY_NAME" >> $GITHUB_ENV
 
-        COPY_ACTION_SERVER_NAME="SERVER_$RANDOM"
-        echo "COPY_ACTION_SERVER_NAME=$COPY_ACTION_SERVER_NAME" >> $GITHUB_ENV
-
         mkdir -p ~/.ssh
         echo '${{ inputs.ssh_key }}' > ~/.ssh/$COPY_ACTION_KEY_NAME
         sudo chmod 400 ~/.ssh/$COPY_ACTION_KEY_NAME
 
-        cat >> ~/.ssh/config <<FINISH
-        Host $COPY_ACTION_SERVER_NAME
-          Hostname ${{ inputs.ssh_host }}
-          User ${{ inputs.ssh_user }}
-          PubKeyAuthentication yes
-          RequestTTY no
-          StrictHostKeyChecking no
-          IdentityFile ~/.ssh/$COPY_ACTION_KEY_NAME
-        FINISH
-
     - name: copy files
       shell: bash
-      run: rsync -cr ${{ inputs.source }} "$COPY_ACTION_SERVER_NAME:${{ inputs.destination }}"
+      run: |
+        rsync -cr  \
+          -e "ssh -o PubKeyAuthentication=yes -o RequestTTY=no -o StrictHostKeyChecking=no -i ~/.ssh/$COPY_ACTION_KEY_NAME" \
+          ${{ inputs.source }} ${{ inputs.ssh_user }}@${{ inputs.ssh_host }}:${{ inputs.destination }}
 
     - name: remove ssh key
       if: always()
